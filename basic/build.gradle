@@ -12,7 +12,7 @@ plugins {
 dependencies {
     testRuntimeOnly 'com.h2database:h2:2.2.224'
 
-    testImplementation 'org.openjdk.jmh:jmh-core:1.36'
+    testImplementation 'org.openjdk.jmh:jmh-core:1.37'
     testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
     def orm = project.findProperty("orm")
     if ( "6.4" == orm ) {
