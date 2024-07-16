@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    testRuntimeOnly 'com.h2database:h2:2.2.224'
+    testRuntimeOnly 'com.h2database:h2:2.3.230'
 
     testImplementation 'org.openjdk.jmh:jmh-core:1.36'
     testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
