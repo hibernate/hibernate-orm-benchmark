@@ -22,11 +22,11 @@ dependencies {
     def orm = project.findProperty("orm")
     if ( "6.4" == orm ) {
         testImplementation 'org.hibernate.orm:hibernate-core:6.4.8.Final'
-        testImplementation 'org.hibernate.orm:hibernate-testing:6.4.8.Final'
+        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.0.CR2'
     }
     else if ( "6.2" == orm ) {
         testImplementation 'org.hibernate.orm:hibernate-core:6.2.29-SNAPSHOT'
-        testImplementation 'org.hibernate.orm:hibernate-testing:6.2.29-SNAPSHOT'
+        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.0.CR2'
     }
     else if ( "5.6" == orm ) {
         testImplementation 'org.hibernate:hibernate-core-jakarta:5.6.15.Final'
@@ -34,11 +34,11 @@ dependencies {
     }
     else if ( "perf" == orm || orm == null ) {
         testImplementation 'org.hibernate.orm:hibernate-core:6.6.0-perf'
-        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.0-perf'
+        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.0.CR2'
     }
     else {
         testImplementation 'org.hibernate.orm:hibernate-core:6.6.0.CR1'
-        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.0.CR1'
+        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.0.CR2'
     }
 
     //Databases
