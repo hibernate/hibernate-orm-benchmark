@@ -12,11 +12,11 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.NaturalId;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.bytecode.enhance.spi.EnhancementContext;
 import org.hibernate.bytecode.enhance.spi.Enhancer;
@@ -30,13 +30,14 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.property.access.spi.PropertyAccess;
 
 import org.hibernate.testing.orm.domain.gambit.EntityOfBasics;
-import org.hibernate.testing.orm.domain.gambit.EntityOfMaps;
 import org.hibernate.testing.orm.domain.gambit.EntityWithLazyOneToOne;
-import org.hibernate.testing.orm.domain.gambit.EnumValue;
 import org.hibernate.testing.orm.domain.gambit.MutableValue;
-import org.hibernate.testing.orm.domain.gambit.SimpleComponent;
 import org.hibernate.testing.orm.domain.gambit.SimpleEntity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.metamodel.EntityType;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
@@ -97,8 +98,8 @@ public class AccessOptimizers {
 			throw new IllegalStateException( "Cannot pollute with monomorphic types" );
 		}
 		switch ( access ) {
-			case OPTIMIZED -> sessionFactory = getSessionFactory( new TestBytecodeProvider(), types );
-			case STANDARD -> sessionFactory = getSessionFactory( new ProxyOnlyBytecodeProvider(), types );
+			case OPTIMIZED -> sessionFactory = getSessionFactory( new TestBytecodeProvider(), types, access );
+			case STANDARD -> sessionFactory = getSessionFactory( new ProxyOnlyBytecodeProvider(), types, access );
 		}
 		populateData( sessionFactory, count, types );
 		session = sessionFactory.openSession();
@@ -116,7 +117,7 @@ public class AccessOptimizers {
 					case 4:
 						query( EntityOfBasics.class, session, bh );
 					case 3:
-						query( EntityOfMaps.class, session, bh );
+						query( AnotherEntity.class, session, bh );
 					case 2:
 						query( EntityWithLazyOneToOne.class, session, bh );
 					case 1:
@@ -140,7 +141,7 @@ public class AccessOptimizers {
 		}
 	}
 
-	private void populateData(SessionFactory sf, int count, int types) {
+	private static void populateData(SessionFactory sf, int count, int types) {
 		if ( types < 1 || types > 4 ) {
 			throw new IllegalArgumentException( "Invalid types" );
 		}
@@ -152,7 +153,7 @@ public class AccessOptimizers {
 				case 4:
 					session.persist( randomEntityOfBasics( i ) );
 				case 3:
-					session.persist( randomEntityOfMaps( i, simpleEntity ) );
+					session.persist( randomAnotherEntity( i ) );
 				case 2:
 					session.persist( randomEntityWithToOne( i, simpleEntity ) );
 				case 1:
@@ -170,43 +171,182 @@ public class AccessOptimizers {
 				new Date( timestamp ),
 				Instant.ofEpochMilli( timestamp ),
 				count,
-				(long) count,
+				timestamp,
 				"simple_entity_" + count
 		);
 	}
 
-	private static EntityOfMaps randomEntityOfMaps(int count, SimpleEntity simpleEntity) {
-		final EntityOfMaps entity = new EntityOfMaps( count, "entity_of_maps_" + count );
-		entity.setBasicByBasic( Map.of( "key_" + count, "value_" + count ) );
-		entity.setNumberByNumber( Map.of( count, (double) count ) );
-		entity.setSortedBasicByBasic( new TreeMap<>( entity.getBasicByBasic() ) );
-		entity.setSortedBasicByBasicWithComparator( new TreeMap<>( entity.getBasicByBasic() ) );
-		entity.setSortedBasicByBasicWithSortNaturalByDefault( new TreeMap<>( entity.getBasicByBasic() ) );
-		final EnumValue enumValue = switch ( count % 3 ) {
-			case 0 -> EnumValue.ONE;
-			case 1 -> EnumValue.TWO;
-			case 2 -> EnumValue.THREE;
-			default -> throw new IllegalStateException( "Unexpected value: " + count % 3 );
-		};
-		entity.setBasicByEnum( Map.of( enumValue, "value_" + count ) );
-		entity.setBasicByConvertedEnum( Map.of( enumValue, "value_" + count ) );
-		final SimpleComponent simpleComponent = new SimpleComponent(
-				"attribute_" + count,
-				"another_attribute_" + count
-		);
-		entity.setComponentByBasic( Map.of( "key_" + count, simpleComponent ) );
-		entity.setBasicByComponent( Map.of( simpleComponent, "value_" + count ) );
-
-		entity.setOneToManyByBasic( Map.of( "key_" + count, simpleEntity ) );
-		entity.setBasicByOneToMany( Map.of( simpleEntity, "value_" + count ) );
-
-		entity.setManyToManyByBasic( Map.of( "key_" + count, simpleEntity ) );
-		entity.setComponentByBasicOrdered( Map.of( "key_" + count, simpleComponent ) );
-
-		entity.setSortedManyToManyByBasic( new TreeMap<>( entity.getOneToManyByBasic() ) );
-		entity.setSortedManyToManyByBasicWithComparator( new TreeMap<>( entity.getOneToManyByBasic() ) );
-		entity.setSortedManyToManyByBasicWithSortNaturalByDefault( new TreeMap<>( entity.getOneToManyByBasic() ) );
+	private static AnotherEntity randomAnotherEntity(int count) {
+		final long timestamp = System.currentTimeMillis() + count * 3_600_000L;
+		final AnotherEntity entity = new AnotherEntity();
+		entity.setId( count );
+		entity.setSomeDate( new Date( timestamp ) );
+		entity.setSomeInstant( Instant.ofEpochMilli( timestamp ) );
+		entity.setSomeInteger( count );
+		entity.setSomeLong( timestamp );
+		entity.setSomeString( "another_entity_" + count );
+		entity.setField0( "field0_" + count );
+		entity.setField1( "field1_" + count );
+		entity.setField2( "field2_" + count );
+		entity.setField3( "field3_" + count );
+		entity.setField5( "field4_" + count );
+		entity.setField4( "field5_" + count );
+		entity.setField6( "field6_" + count );
+		entity.setField7( "field7_" + count );
+		entity.setField8( "field8_" + count );
+		entity.setField9( "field9_" + count );
 		return entity;
+	}
+
+	@Entity(name = "AnotherEntity")
+	static class AnotherEntity {
+		private Integer id;
+		private Date someDate;
+		private Instant someInstant;
+		private Integer someInteger;
+		private Long someLong;
+		private String someString;
+		private String field1;
+		private String field2;
+		private String field3;
+		private String field4;
+		private String field5;
+		private String field6;
+		private String field7;
+		private String field8;
+		private String field9;
+		private String field0;
+
+		@Id
+		public Integer getId() {
+			return id;
+		}
+
+		public void setId(Integer id) {
+			this.id = id;
+		}
+
+		public String getSomeString() {
+			return someString;
+		}
+
+		public void setSomeString(String someString) {
+			this.someString = someString;
+		}
+
+		@NaturalId
+		public Integer getSomeInteger() {
+			return someInteger;
+		}
+
+		public void setSomeInteger(Integer someInteger) {
+			this.someInteger = someInteger;
+		}
+
+		public Long getSomeLong() {
+			return someLong;
+		}
+
+		public void setSomeLong(Long someLong) {
+			this.someLong = someLong;
+		}
+
+		@Temporal(TemporalType.TIMESTAMP)
+		public Date getSomeDate() {
+			return someDate;
+		}
+
+		public void setSomeDate(Date someDate) {
+			this.someDate = someDate;
+		}
+
+		public Instant getSomeInstant() {
+			return someInstant;
+		}
+
+		public void setSomeInstant(Instant someInstant) {
+			this.someInstant = someInstant;
+		}
+
+		public String getField1() {
+			return field1;
+		}
+
+		public void setField1(String field1) {
+			this.field1 = field1;
+		}
+
+		public String getField2() {
+			return field2;
+		}
+
+		public void setField2(String field2) {
+			this.field2 = field2;
+		}
+
+		public String getField3() {
+			return field3;
+		}
+
+		public void setField3(String field3) {
+			this.field3 = field3;
+		}
+
+		public String getField4() {
+			return field4;
+		}
+
+		public void setField4(String field4) {
+			this.field4 = field4;
+		}
+
+		public String getField5() {
+			return field5;
+		}
+
+		public void setField5(String field5) {
+			this.field5 = field5;
+		}
+
+		public String getField6() {
+			return field6;
+		}
+
+		public void setField6(String field6) {
+			this.field6 = field6;
+		}
+
+		public String getField7() {
+			return field7;
+		}
+
+		public void setField7(String field7) {
+			this.field7 = field7;
+		}
+
+		public String getField8() {
+			return field8;
+		}
+
+		public void setField8(String field8) {
+			this.field8 = field8;
+		}
+
+		public String getField9() {
+			return field9;
+		}
+
+		public void setField9(String field9) {
+			this.field9 = field9;
+		}
+
+		public String getField0() {
+			return field0;
+		}
+
+		public void setField0(String field0) {
+			this.field0 = field0;
+		}
 	}
 
 	private static EntityWithLazyOneToOne randomEntityWithToOne(int count, SimpleEntity simpleEntity) {
@@ -255,13 +395,13 @@ public class AccessOptimizers {
 		return entity;
 	}
 
-	protected SessionFactory getSessionFactory(BytecodeProvider bytecodeProvider, int types) {
+	private static SessionFactory getSessionFactory(BytecodeProvider bytecodeProvider, int types, Access access) {
 		final Configuration config = new Configuration();
 		switch ( types ) {
 			case 4:
 				config.addAnnotatedClass( EntityOfBasics.class );
 			case 3:
-				config.addAnnotatedClass( EntityOfMaps.class );
+				config.addAnnotatedClass( AnotherEntity.class );
 			case 2:
 				config.addAnnotatedClass( EntityWithLazyOneToOne.class );
 			case 1:
@@ -310,7 +450,7 @@ public class AccessOptimizers {
 		final int count = switch ( nextEntityTypeId ) {
 			case 0 -> query( SimpleEntity.class, session, bh );
 			case 1 -> query( EntityWithLazyOneToOne.class, session, bh );
-			case 2 -> query( EntityOfMaps.class, session, bh );
+			case 2 -> query( AnotherEntity.class, session, bh );
 			case 3 -> query( EntityOfBasics.class, session, bh );
 			default -> throw new AssertionError( "it shouldn't happen, entity type id: " + nextEntityTypeId );
 		};
