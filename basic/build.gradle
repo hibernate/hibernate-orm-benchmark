@@ -13,6 +13,10 @@ apply from: rootProject.file( 'gradle/databases.gradle' )
 
 repositories {
     mavenLocal()
+
+    maven {
+        url = uri('https://oss.sonatype.org/content/repositories/snapshots/')
+    }
 }
 
 dependencies {
@@ -31,6 +35,10 @@ dependencies {
     else if ( "5.6" == orm ) {
         testImplementation 'org.hibernate:hibernate-core-jakarta:5.6.15.Final'
         testImplementation 'org.hibernate:hibernate-testing-jakarta:5.6.15.Final'
+    }
+    else if ( "7.0" == orm ) {
+        testImplementation 'org.hibernate.orm:hibernate-core:7.0.0-SNAPSHOT'
+        testImplementation 'org.hibernate.orm:hibernate-testing:7.0.0-SNAPSHOT'
     }
     else if ( "perf" == orm || orm == null ) {
         testImplementation 'org.hibernate.orm:hibernate-core:6.6.5-SNAPSHOT'
