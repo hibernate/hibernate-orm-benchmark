@@ -43,13 +43,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.CompilerControl;
-import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
-import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
 import static org.hibernate.benchmark.enhancement.EnhancementUtils.buildEnhancerClassLoader;
@@ -577,5 +575,19 @@ public class EntityInstantiators {
 				}
 			};
 		}
+	}
+
+	public static void main(String[] args) {
+		final EntityInstantiators bench = new EntityInstantiators();
+		bench.instantiation = Instantiation.STANDARD;
+		bench.polluteAtWarmup = false;
+		bench.morphism = Morphism.QUAD;
+		bench.enhance = true;
+		bench.count = 10;
+		bench.mutable = true;
+
+		bench.setup( null );
+
+		bench.query( null );
 	}
 }
