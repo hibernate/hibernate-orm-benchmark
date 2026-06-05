@@ -409,7 +409,6 @@ public class AccessOptimizers {
 		}
 		final StandardServiceRegistryBuilder srb = config.getStandardServiceRegistryBuilder();
 		srb.applySetting( AvailableSettings.SHOW_SQL, false )
-				.applySetting( AvailableSettings.LOG_SESSION_METRICS, false )
 				.applySetting(
 						AvailableSettings.DIALECT,
 						"org.hibernate.dialect.H2Dialect"
