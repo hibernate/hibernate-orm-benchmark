@@ -6,7 +6,7 @@
 
 plugins {
     id 'org.hibernate.orm.java-conventions'
-    id "me.champeau.jmh" version "0.7.2"
+    id "me.champeau.jmh" version "0.7.3"
 }
 
 apply from: rootProject.file( 'gradle/databases.gradle' )
@@ -20,33 +20,21 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.openjdk.jmh:jmh-core:1.36'
-    testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
+    testImplementation 'org.openjdk.jmh:jmh-core:1.37'
+    testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
 
     def orm = project.findProperty("orm")
-    if ( "6.4" == orm ) {
-        testImplementation 'org.hibernate.orm:hibernate-core:6.4.8.Final'
-        testImplementation 'org.hibernate.orm:hibernate-testing:6.4.8.Final'
-    }
-    else if ( "6.2" == orm ) {
-        testImplementation 'org.hibernate.orm:hibernate-core:6.2.31-SNAPSHOT '
-        testImplementation 'org.hibernate.orm:hibernate-testing:6.2.31-SNAPSHOT'
-    }
-    else if ( "5.6" == orm ) {
+    if ( "5.6" == orm ) {
         testImplementation 'org.hibernate:hibernate-core-jakarta:5.6.15.Final'
         testImplementation 'org.hibernate:hibernate-testing-jakarta:5.6.15.Final'
     }
-    else if ( "7.0" == orm ) {
-        testImplementation 'org.hibernate.orm:hibernate-core:7.0.0-SNAPSHOT'
-        testImplementation 'org.hibernate.orm:hibernate-testing:7.0.0-SNAPSHOT'
-    }
-    else if ( "perf" == orm || orm == null ) {
-        testImplementation 'org.hibernate.orm:hibernate-core:6.6.5-SNAPSHOT'
-        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.5-SNAPSHOT'
+    else if ( "6.6" == orm ) {
+        testImplementation 'org.hibernate.orm:hibernate-core:6.6.52.Final'
+        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.52.Final'
     }
     else {
-        testImplementation 'org.hibernate.orm:hibernate-core:6.6.4.Final'
-        testImplementation 'org.hibernate.orm:hibernate-testing:6.6.4.Final'
+        testImplementation 'org.hibernate.orm:hibernate-core:7.4.0.Final'
+        testImplementation 'org.hibernate.orm:hibernate-testing:7.4.0.Final'
     }
 
     //Databases

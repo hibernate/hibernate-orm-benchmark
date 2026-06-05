@@ -89,7 +89,6 @@ public class PersistentCollections {
 		config.addAnnotatedClass( entityClass );
 		final StandardServiceRegistryBuilder srb = config.getStandardServiceRegistryBuilder();
 		srb.applySetting( AvailableSettings.SHOW_SQL, false )
-				.applySetting( AvailableSettings.LOG_SESSION_METRICS, false )
 				.applySetting( AvailableSettings.DIALECT, "org.hibernate.dialect.H2Dialect" )
 				.applySetting( AvailableSettings.JAKARTA_JDBC_DRIVER, "org.h2.Driver" )
 				.applySetting( AvailableSettings.JAKARTA_JDBC_URL, "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1" )

@@ -1,22 +1,19 @@
 #!/bin/bash
 
-function usage() {
-  echo "Usage:"
+usage() {
+  echo "Usage: $0 [orm_version]"
   echo
-  echo "  $0 <orm_version>"
-  echo
-  echo "    <orm>                The ORM version to test (e.g. 6.6 or perf)"
+  echo "  orm_version    The ORM version to test (e.g. 7.4, 6.6, 5.6)."
+  echo "                 Defaults to latest (7.4) if not specified."
 }
 
-ORM_VERSION=$1
-
-if [ -z "$ORM_VERSION" ]; then
-	echo "ERROR: ORM version not supplied"
-	usage
-	exit 1
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  usage
+  exit 0
 fi
 
-./gradlew jmhJar -Porm=${ORM_VERSION}
+ORM_VERSION=${1:-default}
+./gradlew jmhJar ${1:+-Porm=$1}
 java -jar basic/target/libs/hibernate-orm-benchmark-basic-1.0-SNAPSHOT-jmh.jar AutoFlush2 -f 2 -prof gc -prof "async:rawCommand=alloc,wall;event=cpu;output=jfr;dir=/tmp;libPath=${ASYNC_PROFILER_HOME}/lib/libasyncProfiler.so" -pcount=100
 
 java -cp ${ASYNC_PROFILER_HOME}/lib/converter.jar jfr2flame --alloc --total /tmp/org.hibernate.benchmark.flush.AutoFlush2.single-Throughput/jfr-cpu.jfr AutoFlush2-alloc-${ORM_VERSION}.html
