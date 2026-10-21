@@ -24,7 +24,12 @@ dependencies {
     testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
 
     def orm = project.findProperty("orm")
-    if ( "5.6" == orm ) {
+    def ormVersion = project.findProperty("ormVersion")
+    if ( ormVersion ) {
+        testImplementation "org.hibernate.orm:hibernate-core:${ormVersion}"
+        testImplementation "org.hibernate.orm:hibernate-testing:${ormVersion}"
+    }
+    else if ( "5.6" == orm ) {
         testImplementation 'org.hibernate:hibernate-core-jakarta:5.6.15.Final'
         testImplementation 'org.hibernate:hibernate-testing-jakarta:5.6.15.Final'
     }
